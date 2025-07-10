@@ -635,35 +635,35 @@ class Solution:
            return matrix[rows-1][cols-1]
    ```
 
-   6. 整数拆分 [343. 整数拆分 - 力扣（LeetCode）](https://leetcode.cn/problems/integer-break/)
+6. 整数拆分 [343. 整数拆分 - 力扣（LeetCode）](https://leetcode.cn/problems/integer-break/)
 
-      ```python
-      class Solution:
-          def integerBreak(self, n: int) -> int:
-              # dp[i]代表了i整数拆分的最大值
-              # 递推关系：dp[i] = max(j*dp[i-j], j*(i-j), dp[i])
-              # dp[0] = 0, dp[1] = 0, dp[2]=1
-              # 从前往后遍历
-              if n <2:
-                  return 0
-              
-              # 需要存储n+1个数， 因为n=2,需要算dp[3]
-              dp = [0] * (n+1)
-              dp[0] = 0
-              dp[1] = 0
-              dp[2] = 1
-      
-              for i in range(3, n+1):
-                  # 对拆下来的数进行试探
-                  for j in range(1, i):
-                      # 是否继续拆分下去
-                      dp[i] = max(j*dp[i-j], j*(i-j), dp[i])
-      
-              print(dp)
-              return dp[n]
-      ```
+   ```python
+   class Solution:
+       def integerBreak(self, n: int) -> int:
+           # dp[i]代表了i整数拆分的最大值
+           # 递推关系：dp[i] = max(j*dp[i-j], j*(i-j), dp[i])
+           # dp[0] = 0, dp[1] = 0, dp[2]=1
+           # 从前往后遍历
+           if n <2:
+               return 0
+           
+           # 需要存储n+1个数， 因为n=2,需要算dp[3]
+           dp = [0] * (n+1)
+           dp[0] = 0
+           dp[1] = 0
+           dp[2] = 1
+   
+           for i in range(3, n+1):
+               # 对拆下来的数进行试探
+               for j in range(1, i):
+                   # 是否继续拆分下去
+                   dp[i] = max(j*dp[i-j], j*(i-j), dp[i])
+   
+           print(dp)
+           return dp[n]
+   ```
 
-   7. 96不同的二叉搜索树 [96. 不同的二叉搜索树 - 力扣（LeetCode）](https://leetcode.cn/problems/unique-binary-search-trees/)
+7. 96不同的二叉搜索树 [96. 不同的二叉搜索树 - 力扣（LeetCode）](https://leetcode.cn/problems/unique-binary-search-trees/)
 
 ```python
 class Solution:
