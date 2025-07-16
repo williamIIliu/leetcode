@@ -1,4 +1,191 @@
-## 贪心
+# 数组
+
+1. 704 二分查找 [704. 二分查找 - 力扣（LeetCode）](https://leetcode.cn/problems/binary-search/)
+   有序数组，while与双指针找区域
+
+   ```python
+   class Solution:
+       def search(self, nums: List[int], target: int) -> int:
+           left = 0
+           right = len(nums) - 1 # 左闭右闭，均可以到达
+           while left <= right:
+               if nums[(left + right)//2] < target:
+                   # 在中间值的索引加减1，因为显然中间值已经不等
+                   left =  (left + right)//2 +1
+               elif nums[(left + right)//2] > target:
+                   right = (left + right)//2 -1
+               else:
+                   return (left + right)//2
+           
+           return -1
+   ```
+
+2. 27移除元素  [27. 移除元素 - 力扣（LeetCode）](https://leetcode.cn/problems/remove-element/description/)
+   原地，使用双指针的方法，**所以是通当前元素不等做判断的，不等就赋值slow。否则继续等**
+
+```python
+class Solution:
+    def removeElement(self, nums: List[int], val: int) -> int:
+        slow = 0
+        fast = 0
+        cnt = 0
+
+        # for fast in range(len(nums)):
+        #     # 遇到元素不是，就把slow赋值fast的索引元素，然后slow加1
+        #     # 否则fast继续往前走，slow留在下一个能够选的位置
+        #     if nums[fast] != val:
+        #         nums[slow] = nums[fast]
+        #         slow += 1
+        #         cnt += 1
+        # return cnt
+        
+        # 下面这里用while
+        while fast < len(nums):
+            if nums[fast] != val:
+                nums[slow] = nums[fast]
+                slow += 1
+                cnt += 1
+            fast += 1
+        
+        return cnt
+            
+```
+
+3. 有序数组的平方 [977. 有序数组的平方 - 力扣（LeetCode）](https://leetcode.cn/problems/squares-of-a-sorted-array/)
+   ```python
+   class Solution:
+       def sortedSquares(self, nums: List[int]) -> List[int]:
+           # 自定义库
+           # for i in range(len(nums)):
+           #     nums[i] = nums[i] ** 2
+           # nums.sort()
+           # return nums
+   
+           # 双指针
+           # 通过比较两段的结果谁大，存进最大的位置
+           left = 0
+           i = len(nums) -1
+           right = len(nums) -1
+           res = [0] * len(nums)
+           while left <= right: # 指针相遇结束
+               print(i)
+               num_left = nums[left] ** 2
+               num_right = nums[right] ** 2
+   
+               if num_left >= num_right:
+                   res[i] = num_left
+                   # 左指针前进
+                   left += 1
+               else:
+                   res[i] = num_right
+                   # 右指针左移
+                   right -= 1
+               # 存放指针移动
+               i -= 1
+           return res
+   ```
+
+   
+
+# 链表
+
+单链表：head-node-null, node: next, val
+双链表：head-node-null，null-node-tail，node:prev,next, val
+循环链表：head-node-head
+
+> ```python
+> class ListNode:
+>     def __init__(self, val, next=None):
+>         self.val = val
+>         self.next = next
+> ```
+
+1.  [203. 移除链表元素 - 力扣（LeetCode）](https://leetcode.cn/problems/remove-linked-list-elements/)
+   ```python
+   class Solution:
+       def removeElements(self, head: Optional[ListNode], val: int) -> Optional[ListNode]:
+           # 创建dummy 保留head
+           dummy = ListNode(next=head)
+   
+           # 用cur来遍历链表
+           cur = dummy
+           while cur.next: # 下一个节点存在
+               if cur.next.val == val:
+                   cur.next = cur.next.next
+               else:
+                   cur = cur.next
+           return dummy.next
+   ```
+
+2. [707. 设计链表 - 力扣（LeetCode）](https://leetcode.cn/problems/design-linked-list/description/)
+
+3. 反转链表 [206. 反转链表 - 力扣（LeetCode）](https://leetcode.cn/problems/reverse-linked-list/)
+   ```python
+   class Solution:
+       def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+           cur = head
+           prev = None
+   
+           # 用这个节点存在就反向指针，避免了最后一个None
+           while cur:
+               nxt = cur.next
+               # 反向指针
+               cur.next = prev
+               # 当前节点作为下一轮的prev
+               prev = cur
+               # 下一个节点（不存储结果）
+               cur = nxt
+           
+           return prev
+   ```
+
+   4. 两两交换 [24. 两两交换链表中的节点 - 力扣（LeetCode）](https://leetcode.cn/problems/swap-nodes-in-pairs/)
+      ```python
+      class Solution:
+          def swapPairs(self, head: Optional[ListNode]) -> Optional[ListNode]:
+              dummy = ListNode(next=head)
+              cur = dummy
+      
+              # 使用cur遍历整个链表
+              # 因为是以两个节点为最小元素操作，需要需要判断是否有两个元素
+              while cur.next and cur.next.next:
+                  nxt = cur.next
+                  nnnxt = cur.next.next.next
+      
+                  # 然后执行一次翻转
+                  # 下一个元素指向下下个元素
+                  cur.next = cur.next.next
+                  # 然后下下个元素指向下一个元素
+                  cur.next.next = nxt
+      
+                  # 准备下一轮循环！
+                  # 然后下一个元素要指向下一周期的第一个元素
+                  nxt.next = nnnxt
+                  # 下一个节点是这个周期第二个元素
+                  cur = nxt
+              
+              return dummy.next
+          
+          # 没学会！
+          # 最小元素使用递归完成
+              if not head or not head.next:
+                  return head
+              
+              prev = head
+              cur = head.next
+              nxt = head.next.next
+      
+              # 下一个元素指向下下个元素
+              cur.next = prev
+              # 下下个元素指向下一个
+              prev.next = self.swapPairs(nxt)
+              
+              return cur
+      ```
+
+      
+
+# 贪心
 
 **贪心的本质是选择每一阶段的局部最优，从而达到全局最优**，一般是需要先考虑当前问题中：
 
@@ -688,4 +875,164 @@ class Solution:
         return dp[n]
 
 ```
+
+8. 0/1背包问题 [46. 携带研究材料（第六期模拟笔试）](https://kamacoder.com/problempage.php?pid=1046)
+
+   先遍历物体，再遍历背包，并且倒序遍历(bag, weight[i]-1, -1)
+
+   ```python
+   num_obj, bag = map(int, input().split())
+   spaces = list(map(int, input().split()))
+   values = list(map(int, input().split()))
+   
+   # num_obj = 6 
+   # bag = 3
+   # spaces = [2, 2, 3, 1, 5, 2]
+   # values = [2, 3, 1, 5, 4, 3]
+   
+   # dp[i][j]是从0-i个物体中装满空间背包j的最大价值
+   # 递推公式就是装还是不装下一个重量为spaces[i]的物体
+   # dp[i][j] = max(dp[i-1][j-spaces[j]] + values[i], dp[i-1][j])
+   # dp[i][0] = 0, dp[0][j]中，j如果超过第一个物体重量就是values[0],否则0
+   
+   dp = [[0] * (bag+1) for _ in range(num_obj)]
+   for col in range(spaces[0], bag+1):
+       dp[0][col] = values[0] 
+   
+   for row in range(1, num_obj): #遍历物体
+       for space in range(bag+1):
+           if spaces[row] <= space:
+               dp[row][space] = max(dp[row-1][space-spaces[row]] + values[row], dp[row-1][space])
+           else:
+               dp[row][space] = dp[row-1][space]
+   
+   print(dp[num_obj-1][bag])
+   ```
+
+   
+
+9. 0/1背包II [46. 携带研究材料（第六期模拟笔试）](https://kamacoder.com/problempage.php?pid=1046)
+   ```python
+   num_obj, bag = map(int, input().split())
+   spaces = list(map(int, input().split()))
+   values = list(map(int, input().split()))
+   
+   # num_obj = 6 
+   # bag = 3
+   # spaces = [2, 2, 3, 1, 5, 2]
+   # values = [2, 3, 1, 5, 4, 3]
+   
+   # dp[j]是装满空间背包j的最大价值
+   # 递推公式就是装还是不装下一个重量为spaces[i]的物体
+   # dp[j] = max(dp[j-spaces[j]] + values[i], dp[j])
+   # dp[0] = 0,
+   
+   dp = [0] * (bag+1)
+   for i in range(num_obj): #先遍历物体
+       for j in range(bag, spaces[i]-1, -1): # 不断地走向下一个物体
+           dp[j] = max(dp[j], dp[j-spaces[i]] + values[i])
+   
+   print(dp[bag])
+   
+   ```
+
+10. 416 分割等和子集
+
+    ```python
+    class Solution:
+        def canPartition(self, nums: List[int]) -> bool:
+            # 从0/1背包的思路进行迁移，将list内部的数值累加，除以2
+            # 如果将每个元素的数值视作其重量和价值，那么问题就转化为
+            # 是否可以将sum//2的背包装满，并且它的价值刚好就是sum//2
+    
+            # 剪枝
+            if sum(nums)%2 != 0:
+                return False
+    
+            bag = sum(nums)//2
+            dp = [0]*(bag+1)
+    
+            for i in range(len(nums)):
+                for j in range(bag, nums[i]-1, -1): # nums[i]-1是因为for循环函数的右边是开的
+                    if nums[i] <= bag:
+                        dp[j] = max(dp[j], dp[j-nums[i]] + nums[i])
+                    else:
+                        dp[j] = dp[j-1]
+            print(dp)
+            return True if dp[bag] == bag else False
+    ```
+
+    
+
+11. 1049 最后一块石头的重量II
+
+    ```python
+    class Solution:
+        def lastStoneWeightII(self, stones: List[int]) -> int:
+            bag = sum(stones)//2
+            dp = [0] * (bag+1)
+    
+            for i in range(len(stones)):
+                for j in range(bag, stones[i]-1, -1):
+                    if stones[i] <= bag:
+                        dp[j] = max(dp[j], dp[j-stones[i]]+stones[i])
+                    else:
+                        dp[j] = dp[j-1]
+    
+            # 总重量减去两倍的最接近总重量一半的重量
+            total_sum = sum(stones)
+            total_sum -= 2*dp[bag]
+            return total_sum
+    ```
+
+    
+
+12. 474 一和零https://leetcode.cn/problems/ones-and-zeroes
+
+    ```python
+    class Solution:
+        def findMaxForm(self, strs: List[str], m: int, n: int) -> int:
+            dp = [[0]*(n+1) for _ in range(m+1)] # 代表了背包重量
+            for s in strs:
+                # 0/1统计,python提供string的计数方法
+                zeros = s.count('0')
+                ones = s.count('1') 
+                
+                # 这个地方没有特别懂
+                for j1 in range(m, zeros-1, -1):
+                    for j2 in range(n, ones-1, -1):
+                        dp[j1][j2] = max(dp[j1][j2], dp[j1-zeros][j2-ones]+1)
+            
+            return dp[m][n] 
+    ```
+
+13. 完全背包 [52. 携带研究材料（第七期模拟笔试）](https://kamacoder.com/problempage.php?pid=1052)
+    ```python
+    n, bag_w = map(int, input().split())
+    weights = [0] * n
+    values = [0] * n
+    
+    for i in range(n):
+        weights[i], values[i] = map(int, input().split())
+    
+    # 二维dp，因为无法重新遍历
+    dp = [[0] * (bag_w+1) for _ in range(n)]
+    
+    # 先遍历物品，再遍历背包
+    for i in range(n):
+        # 这里需要正序遍历，因为要保证可重复填小物品
+        for j in range(bag_w+1):
+            if weights[i] <= j:
+                # dp[i][j] = max(dp[i-1][j], dp[i][j-weights[i]] + values[i])，不会减少物品选择
+                dp[i][j] = max(dp[i-1][j], dp[i][j-weights[i]] + values[i])
+            else:
+                # 这里不变
+                dp[i][j] = dp[i-1][j]
+    
+    print(dp[n-1][bag_w])
+    ```
+
+    
+
+14. 518 零钱兑换 
 
