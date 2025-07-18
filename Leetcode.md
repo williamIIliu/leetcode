@@ -985,9 +985,31 @@ class Solution:
             return total_sum
     ```
 
+12. 目标和
+    ```python
+    class Solution:
+        def findTargetSumWays(self, nums: List[int], target: int) -> int:
+            # left + right = sum
+            # left - right = target
+            # left = (sum + target) // 2
+    
+            # 那么现在的问题就变成了是否能够将背包装满left重量的物体
+            # 背包问题提供了一种方案：能够刚好将物体按照剩余空间转进背包
+    
+            bag = (sum(nums) + target) // 2
+            dp = [0] * (bag+1)
+            for i in range(len(nums)):
+                for j in range(bag, nums[i]-1, -1):
+                    if nums[i] <= bag:
+                        dp[j] = max(dp[j], dp[j-nums[i]]+nums[i])
+                    else:
+                        dp[j] = dp[j-1]
+            print(dp)
+    ```
+
     
 
-12. 474 一和零https://leetcode.cn/problems/ones-and-zeroes
+13. 474 一和零https://leetcode.cn/problems/ones-and-zeroes
 
     ```python
     class Solution:
@@ -1006,7 +1028,9 @@ class Solution:
             return dp[m][n] 
     ```
 
-13. 完全背包 [52. 携带研究材料（第七期模拟笔试）](https://kamacoder.com/problempage.php?pid=1052)
+14. 完全背包 [52. 携带研究材料（第七期模拟笔试）](https://kamacoder.com/problempage.php?pid=1052)
+    **完全背包问题解决的是装满这个背包的最佳价值，或者是能不能装满这个背包**
+
     ```python
     n, bag_w = map(int, input().split())
     weights = [0] * n
@@ -1032,7 +1056,71 @@ class Solution:
     print(dp[n-1][bag_w])
     ```
 
+15. 518 零钱兑换 
+
+```python
+class Solution:
+    def change(self, amount: int, coins: List[int]) -> int:
+        # dp[j]代表凑够金额为j的方案
+        # dp[j] += dp[j-i] # i是金额的选择数目
+        # dp[0] = 1初始化为1，否则后面结果累加都是1； 而非零下标都标记为0，否则影响结果
+
+        dp = [0] * (amount+1)
+        dp[0] = 1
+
+        #先遍历物品
+        for i in range(len(coins)):
+            for j in range(amount+1): #这里一定要amount+1,否则会漏掉最后的amount
+                print(j)
+                print(dp)
+                if j >= coins[i]:
+                    dp[j] += dp[j-coins[i]]
+
+        # print(dp)
+        return dp[amount]
+```
+
+
+
+16. 组合综合IV
+    **这道题其实要求了物体的顺序，所以在遍历的时候需要先遍历背包容量，在遍历物体**
+
+```python
+class Solution:
+    def combinationSum4(self, nums: List[int], target: int) -> int:
+        # 和上一题类似，但是这一题要求顺序了
+        dp = [0] * (target+1)
+        dp[0] = 1
+
+        # 在求排列而非组合的时候需要对背包进行遍历，
+        # 如果先对物品遍历，无形中就会对物体进行排序，从而缺失一些结果
+        for j in range(target+1):
+            for i in range(len(nums)):
+                if j >= nums[i]:
+                    dp[j] += dp[j-nums[i]]
+        
+        # print(dp[target])
+        return dp[target]
+```
+
+17. 爬楼梯，跳多层
+    ```python
+    n, m = map(int, input().split())
     
+    # m其实就是物品， n就是背包容量，要学会抽象
+    # dp[j]代表了上j层楼梯的方案数目
+    # 所以dp[j] += dp[j-i]
+    dp = [0] * (n+1)
+    dp[0] = 1
+    
+    # 而且这题显然不是组合，而是排列！！
+    # 这里i的遍历顺序是(1, m+1)，要结合题意与for循环规则
+    for j in range(1, n+1):
+        for i in range(1, m+1):
+            if j >= i:
+                dp[j] += dp[j-i]
+    
+    print(dp[n])
+    ```
 
-14. 518 零钱兑换 
-
+    
