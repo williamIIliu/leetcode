@@ -700,6 +700,22 @@ class Solution:
 - 遍历顺序：从后往前还是从前往后
 - 打印数组检查
 
+## 思考
+
+递归最大的思想就是遍历的同时保存结果，然后后面的计算在先前的计算基础上完成，从而减少计算重复，所以递归最重要的是从小的元素思考，然后想如何使用这些结果进行状态转移
+
+dp数组有三种：
+
+- 一维dp
+  在题目的条件中，有的是有条件的状态转移，例如nums[j] < nums[i]
+
+- 二维dp
+
+- 一维dp加上额外状态
+  不同状态之间有条件转移
+
+  
+
 ## 题目
 
 1. 503 斐波那契数列
@@ -1121,6 +1137,604 @@ class Solution:
                 dp[j] += dp[j-i]
     
     print(dp[n])
+    ```
+
+    18. 322 零钱兑换
+
+        ```python
+        class Solution:
+            def coinChange(self, coins: List[int], amount: int) -> int:
+                # dp[j]代表了凑成金额j的最小硬币个数
+                # dp[j] = min(dp[j], dp[j-i]+1)
+                # dp[0] = 0
+        
+                dp = [float('inf')] * (amount+1)
+                dp[0] = 0
+                
+                for i in range(len(coins)):
+                    for j in range(amount+1):
+                        # 这里还需要判断dp[j-coin[i]]初始值，不是才进行状态转移
+                        # j >= coins[i]
+                        if j >= coins[i] and dp[j-coins[i]] != float('inf'):
+                            dp[j] = min(dp[j], dp[j-coins[i]]+1)
+        
+                return dp[amount] if dp[amount] != float('inf') else -1
+        ```
+
+        
+
+18. 279 完全平方数
+
+    ```python
+    class Solution:
+        def numSquares(self, n: int) -> int:
+            # dp[j]是凑成n的最小平方和数字数目
+            # dp[j] = min(dp[j], dp[j-i]+1)
+            coins = []
+            for i in range(1, n):
+                if i**2 <= n:
+                    coins.append(i**2)
+            
+            dp = [float('inf')] * (n+1)
+            dp[0] = 0
+            dp[1] = 1
+    
+            # 先遍历物体，组合
+            for i in range(len(coins)):
+                # 直接通过这里做出限制，然后就可以避免多余的循环和判定
+                for j in range(i**2, n+1):
+                    # print(coins[i])
+                    if dp[j-coins[i]] != float('inf'):
+                        dp[j] = min(dp[j], dp[j-coins[i]]+1)
+    
+            # 先遍历背包(排列)
+            for j in range(1, n+1):
+                for i in range(len(coins)):
+                     if dp[j-coins[i]] != float('inf'):
+                        dp[j] = min(dp[j], dp[j-coins[i]]+1)
+            
+            return dp[n] 
+    ```
+
+    
+
+19. 139单词拆分
+
+    ```python
+    class Solution:
+        def wordBreak(self, s: str, wordDict: List[str]) -> bool:
+            # dp[j]就是s长度到j的时候是否可以由字典组成
+            # dp[j] = dp[j] or dp[j-i]
+    
+            dp = [False] * (len(s)+1)
+            dp[0] = True
+            
+            # 这个问题其实是排列，因为要求了word的顺序
+            for j in range(1, len(s)+1):
+                for word in wordDict:
+                    # 以文字长度去遍历， 那么过往的单词能否组成，并且右开
+                    # print(s[j-len(word):j])
+                    if j >= len(word):
+                        dp[j] = dp[j] or (dp[j-len(word)] and word == s[j-len(word):j]) 
+            
+            return dp[len(s)]
+    ```
+
+    
+
+20. 198 打家劫舍 [198. 打家劫舍 - 力扣（LeetCode）](https://leetcode.cn/problems/house-robber/)
+
+    ```python
+    class Solution:
+        def rob(self, nums: List[int]) -> int:
+            # dp[i]就是偷了第i家的和之前的最佳金额
+            # dp[i] = max(dp[i-2] + nums[i], dp[i-1])
+            # dp[0] = nums[0], dp[1] = max(nums[0], nums[1]), dp长度就是len(nums)
+            if len(nums) == 1:
+                return nums[0]
+                
+            dp = [0] * len(nums)
+            dp[0] = nums[0]
+            dp[1] = max(nums[0], nums[1])
+    
+            for i in range(2, len(nums)):
+                dp[i] = max(dp[i-2] + nums[i], dp[i-1])
+            return dp[-1]
+    ```
+
+    
+
+21. 213打家劫舍 II  [213. 打家劫舍 II - 力扣（LeetCode）](https://leetcode.cn/problems/house-robber-ii/)
+    这道题就是典型的结合具体问题分类讨论即可
+
+    ```python
+    class Solution:
+        def rob(self, nums: List[int]) -> int:
+            # 房子连在一起之后，能偷的最大数目是len(nums)//2
+            # 最简单的就是算两种情况，分类讨论
+    
+            if len(nums) == 1:
+                return nums[0]
+            if len(nums) <= 2:
+                return max(nums[0],nums[1])
+    
+            # 偷第一个，把最后一个扔掉
+            nums1= nums[:len(nums)-1]
+            dp = [0] *(len(nums1))
+            dp[0] = nums1[0]
+            dp[1] = max(nums1[0], nums1[1])
+    
+            for i in range(2, len(nums1)):
+                dp[i] = max(dp[i-1], dp[i-2]+nums1[i])
+    
+            res1 = dp[len(nums1)-1]
+            
+            # 第一家不偷， 扔掉第一个
+            nums1= nums[1:]
+            dp[0] = nums1[0]
+            dp[1] = max(nums1[0], nums1[1])
+            for i in range(2, len(nums1)):
+                dp[i] = max(dp[i-1], dp[i-2]+nums1[i])
+            res2 = dp[len(nums1)-1]
+            
+            
+            return max(res1, res2)
+    ```
+
+    
+
+22. 337 打家劫舍 [337. 打家劫舍 III - 力扣（LeetCode）](https://leetcode.cn/problems/house-robber-iii/)
+
+    ```python
+    # Definition for a binary tree node.
+    # class TreeNode:
+    #     def __init__(self, val=0, left=None, right=None):
+    #         self.val = val
+    #         self.left = left
+    #         self.right = right
+    class Solution:
+        def rob(self, root: Optional[TreeNode]) -> int:
+            # dp= [,]两个元素分别代表不偷该节点得到最大金额，偷该节点的最大金额
+    
+            def traversal(node):
+                if not node:
+                    # 递归终止条件，就是遇到了空节点，那肯定是不偷的
+                    return (0, 0)
+                
+                left = traversal(node.left)
+                right = traversal(node.right)
+    
+                # 不偷当前节点，然后偷子节点，那么需要判断左右子节点的最大值
+                val_0 = max(left[0], left[1]) + max(right[0],  right[1])
+    
+                # 偷当前节点，那么子节点就不能偷
+                val_1 = node.val + left[0] + right[0]
+    
+                return (val_0, val_1)
+            
+            res = traversal(root)
+            return max(res)
+    ```
+
+23. 121买卖股票的最佳时机
+    **从这里开始其实包含两种状况下的dp，dp还是一维dp，但是后面第二维度是二分类的结果**
+
+    -  只能买卖一次，要引入持有的概念,否则卖出之后的状态无法表示
+    - 今天持有股票要和-prices[i]比较，因为需要扣费
+
+    ```python
+    class Solution:
+        def maxProfit(self, prices: List[int]) -> int:
+            # 贪心
+            low = float('inf')
+            res= 0
+            for i in range(len(prices)):
+                low = min(low, prices[i])
+                res = max(res, prices[i]-low)
+            return res
+        
+            # 同样的是一维dp加上一个判断，然后是两种情况下的dp递推公式
+            # 今天不持有股票所得的最大现金， 那么就是昨天不持有，或者是昨天买了今天卖出了
+            # dp[i][0] = max(dp[i-1][0], dp[i-1][1] + prices[i]) 
+            # 今天持有股票所得最大现金，那么就是昨天就持有，和-prices比较
+            # dp[i][1] = max(dp[i-1][1], -prices[i])
+    
+            dp = [[0]*2 for _ in range(len(prices))]
+            dp[0][0] = 0
+            dp[0][1] = -prices[0]
+    
+            for i in range(1, len(prices)):
+                dp[i][0] = max(dp[i-1][0], dp[i-1][1] + prices[i])
+                dp[i][1] = max(dp[i-1][1], -prices[i])
+            
+            return dp[len(prices)-1][0]
+    ```
+
+24. 122 买卖股票的最佳时机 II [122. 买卖股票的最佳时机 II - 力扣（LeetCode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/)
+
+    ```python
+    class Solution:
+        def maxProfit(self, prices: List[int]) -> int:
+            # 这次是可以买卖多次，但是手上最多一只股票
+            # 今天不持有，昨天也没买或者昨天买今天卖
+            # dp[i][0] = max(dp[i-1][0], dp[i-1][1]+prices[i])
+            # 今天持有：昨天没买，今天买了或者昨天就买了
+            # dp[i][1] = max(dp[i-1][1], dp[i-1][0]-prices[i])
+            dp = [[0]*2 for _ in range(len(prices))]
+            dp[0][1] = -prices[0]
+    
+            for i in range(1, len(prices)):
+                dp[i][0] = max(dp[i-1][0], dp[i-1][1]+prices[i])
+                dp[i][1] = max(dp[i-1][1], dp[i-1][0]-prices[i])
+    
+            return dp[len(prices)-1][0]
+    ```
+
+    
+
+25. 123 买卖股票的最佳时机 III
+
+    ```python
+    ```
+
+    
+
+26. IV
+
+27. 买卖股票的最佳时机 冷冻期 [309. 买卖股票的最佳时机含冷冻期 - 力扣（LeetCode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-with-cooldown/)
+
+    **之前的问题是只有两种状态的判断，现在是有多种情况判断，而且每种情况的状态转移不同**
+
+    ```python
+    class Solution:
+        def maxProfit(self, prices: List[int]) -> int:
+            # 之前的问题是只有两种状态的判断，现在是有多种情况判断，而且每种情况的状态转移不同
+            # 分成持有股票、卖出、冻结、保持卖出四种状态
+            # dp[i][0] = max(dp[i-1][0], dp[i-1][2]-prices[i] ,dp[i-1][3]-prices[i]) # 今天持有，只能昨天就持有或者是今天买的，而今天买只能昨天是持续卖出状态或者冻结期
+            # dp[i][1] = dp[i-1][0] + prices[i] #今天能卖，昨天一定是持股的
+            # dp[i][2] = dp[i][1] # 今天冻结，昨天得卖
+            # dp[i][3] = max(dp[i][3], dp[i][2]) # 昨天冻结或者是昨天也是卖出状态
+    
+            dp = [[0]*4 for _ in range(len(prices))]
+            dp[0][0] = -prices[0]
+    
+            for i in range(1, len(prices)):
+                dp[i][0] = max(dp[i-1][0], dp[i-1][2]-prices[i] ,dp[i-1][3]-prices[i])
+                dp[i][1] = dp[i-1][0] + prices[i]
+                dp[i][2] = dp[i-1][1]
+                dp[i][3] = max(dp[i-1][3], dp[i-1][2])
+                # print(dp)
+            
+            return max(dp[-1][1], dp[-1][2], dp[-1][3]) # 对所有不持股票的条件做判断
+    ```
+
+28. 买卖股票的最佳时机 手续费 [714. 买卖股票的最佳时机含手续费 - 力扣（LeetCode）](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/)
+    和多次买卖股票，但是仅能持有一支是一样的解法，但是这道题在卖出时需要支付交易费
+
+    ```python
+    class Solution:
+        def maxProfit(self, prices: List[int], fee: int) -> int:
+            # dp[i][]代表持有还是不持有
+            # 今天不持有，只有昨天不持有或者昨天有今天卖了
+            # dp[i][0] = max(dp[i-1][0], dp[i-1][1] +prices[i]-fee[i])
+            # 今天持有，只有昨天持有或者今天买了
+            # dp[i][1] = max(dp[i-1][1], dp[i-1][0] -prices[i]-fee[i])
+            dp = [[0]*2 for _ in range(len(prices))]
+            dp[0][1] = dp[0][1] -prices[0]
+    
+            for i in range(1, len(prices)):
+                dp[i][0] = max(dp[i-1][0], dp[i-1][1] +prices[i]-fee)
+                dp[i][1] = max(dp[i-1][1], dp[i-1][0] -prices[i])
+    
+            return dp[-1][0]
+    ```
+
+29. 最长递增子序列
+
+     子序列问题是动态规划解决的经典问题
+
+    ```python
+    class Solution:
+        def lengthOfLIS(self, nums: List[int]) -> int:
+            # dp[i]代表了以nums[i]结尾的最长递增子序列长度
+            # 递归最大的思想就是遍历的同时保存结果，然后后面的计算在先前的计算基础上完成，从而减少计算重复
+            # 所以递归最重要的是从小的元素思考，然后想如何使用这些结果进行状态转移
+            # dp[i] = max(dp[i], dp[j]+1) ，如果nums[j] < nums[i]，那么加1
+            # dp[i] = 1， 初始化1，因为自身保证了长度下限
+    
+            dp = [1] * (len(nums))
+            for i in range(len(nums)):
+                # 这里类似于双指针，然后内部不断与外部结果比较
+                for j in range(0, i):
+                    # 严格递增
+                    if nums[j] < nums[i]:
+                        dp[i] = max(dp[j]+1, dp[i])
+            
+            # print(dp)
+            # 最后一个元素不一定是最大值，例如[1,3,6, 90, 7] 所以找最大值
+            res= 0 
+            for ele in dp:
+                res = max(res, ele)
+            return res
+    ```
+
+30. 674最长连续递增子序列
+    贪心和动规都可以，但是动规会超时一些算例
+
+    ```python
+    class Solution:
+        def findLengthOfLCIS(self, nums: List[int]) -> int:
+            # 贪心
+            # 只要不满足的就重新计算
+            cur = 0 
+            res = 1
+            length = 1
+            for fast in range(1, len(nums)):
+                if nums[fast] > nums[fast-1]:
+                    length += 1
+                    res = max(res, length)
+                else:  
+                    length = 1
+    
+            return res  
+            
+            #动态
+            #这题与上一题的唯一区别在于，这道题要求连续，所以比较的对象变成了j前后两个
+            # 下面这种想法并不准确，因为后者的条件包含前者
+            # if nums[j]<nums[i] and nums[j]<nums[j+1]
+    
+            # 直接去掉前面的比较，只比较后面的if nums[j]<nums[j+1]:
+    
+            # res= 1
+            # dp = [1] * (len(nums))
+            # for i in range(len(nums)):
+            #     for j in range(i):
+            #         if nums[j]<nums[j+1]:
+            #             dp[i] = max(dp[i], dp[j]+1)
+            #             res = max(res, dp[i])
+            #         else:
+            #             dp[i] = 1
+    
+            # return res
+    ```
+
+    
+
+31. 最长重复子数组 [718. 最长重复子数组 - 力扣（LeetCode）](https://leetcode.cn/problems/maximum-length-of-repeated-subarray/)
+
+    二维dp数组一定要记得和内外部循环列表的长度一致
+
+    ```python
+    class Solution:
+        def findLength(self, nums1: List[int], nums2: List[int]) -> int:
+            # 使用二维dp数组
+            # dp[j][j]表示在第一个数组nums1[i]和第二个数组nums1[j]结尾的的最大重复序列
+            # 并非求递增数组
+    
+            res = 0
+            dp = [[0] * (len(nums2)+1) for _ in range(len(nums1)+1)]
+            # 这里的行和列需要和nums1和nums2对应一致
+            for i in range(1,len(nums1)+1):
+                for j in range(1,len(nums2)+1):
+                    if nums1[i-1] == nums2[j-1]:
+                        dp[i][j] = dp[i-1][j-1]+1
+                        res = max(res, dp[i][j])
+            return res
+    ```
+
+32. 1143 最长公共子序列 / 1035不想交的线
+
+    ```python
+    class Solution:
+        def longestCommonSubsequence(self, text1: str, text2: str) -> int:
+            # 递推公式是一样的，但是这里面是可以离散的选择也就是
+            # 状态方程， 这次的状态转移是潜在的，多种方式的
+            # dp[i][j]可以通过dp[i-1][j-1], dp[i][j-1], dp[i-1][j]得到
+    
+            # 在需要对前后值进行比较的时候，就需要额外设置一个长度len()+1
+            dp = [[0] * (len(text2)+1) for _ in range(len(text1)+1)]
+    
+            for i in range(1, len(text1)+1):
+                for j in range(1, len(text2)+1):
+                    if text1[i-1] == text2[j-1]:
+                        dp[i][j] = dp[i-1][j-1] + 1 
+                    else:
+                        dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+            
+            # print(dp)
+            return dp[len(text1)][len(text2)]
+    ```
+
+    
+
+33. 53 最大子数组和 [53. 最大子数组和 - 力扣（LeetCode）](https://leetcode.cn/problems/maximum-subarray/)
+    同样的，需要做一个额外的比较
+
+    ```python
+    class Solution:
+        def maxSubArray(self, nums: List[int]) -> int:
+            # dp[i] 代表前i个元素的最大子序列和
+            # 在遍历到当前元素的时候，如果前一个元素的最大子数组和小于0，那么等于自己，否则加上
+    
+            if len(nums) <= 1:
+                return nums[0]
+    
+            dp = [0] * (len(nums) + 1)
+            dp[1] = nums[0]
+            for i in range(1, len(nums)+1):
+                if dp[i-1] > 0:
+                    dp[i] = dp[i-1] + nums[i-1]
+                else:
+                    dp[i] = nums[i-1]
+            
+            return max(dp[1:])
+    ```
+
+34. 392 判断子序列
+    然后到了**编辑距离**的环节，这里面需要额外对结果做一个判断
+
+    ```python
+    class Solution:
+        def isSubsequence(self, s: str, t: str) -> bool:
+            # 和最长公共子序列类似，这里的心意在与最后判断公共最大长度与s是否相等
+    
+            dp = [[0]*(len(s)+1) for _ in range(len(t)+1)]
+    
+            for i in range(1, len(t)+1):
+                for j in range(1, len(s)+1):
+                    if s[j-1] == t[i-1]:
+                        dp[i][j] = dp[i-1][j-1] + 1 
+                    else:
+                        dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+    
+            # print(dp)
+            return True if dp[-1][-1] == len(s) else False
+    ```
+
+    35. 115 不同的子序列 [115. 不同的子序列 - 力扣（LeetCode）](https://leetcode.cn/problems/distinct-subsequences/) (没懂！)
+
+        ```python
+        class Solution:
+            def numDistinct(self, s: str, t: str) -> int:
+                # 显然有用二维dp数组，然后dp[i][j]下标是以i-1,j-1结尾的个数
+                dp = [[0]*(len(t)+1) for _ in range(len(s)+1)]
+        
+                for i in range(len(s)):
+                    dp[i][0] = 1
+                for j in range(1, len(t)):
+                    dp[0][j] = 0
+                
+                for i in range(1, len(s)+1):
+                    for j in range(1, len(t)+1):
+                        if s[i-1] == t[j-1]:
+                            # 如果s去掉一个元素元也能够得到这个结果，这里其实涉及到删除操作
+                            dp[i][j] = dp[i-1][j-1] + dp[i-1][j]
+                        else:
+                            dp[i][j] = dp[i-1][j]
+                
+                return dp[-1][-1]
+        ```
+
+        
+
+    36. 583 两个字符串的删除操作 
+
+        ```python
+        class Solution:
+            def minDistance(self, word1: str, word2: str) -> int:
+                dp = [[0] * (len(word2)+1) for _ in range(len(word1)+1)]
+        
+                # 初始化，删除对齐
+                for i in range(len(word1)+1):
+                    dp[i][0] = i 
+                for j in range(len(word2)+1):
+                    dp[0][j] = j
+                
+                for i in range(1, len(word1)+1):
+                    for j in range(1, len(word2)+1):
+                        if word1[i-1] == word2[j-1]:
+                            # 如果相等的话，不用执行操作
+                            dp[i][j] = dp[i-1][j-1]
+                        else:
+                            # dp[i][j-1]这里其实就是删除操作，删除word[0:j]的最后一个元素
+                            dp[i][j] = min(dp[i][j-1]+1, dp[i-1][j]+1, dp[i-1][j-1]+2)
+                
+                # print(dp)
+                return dp[-1][-1]
+        ```
+
+        
+
+37. 72 **编辑距离**   [72. 编辑距离 - 力扣（LeetCode）](https://leetcode.cn/problems/edit-distance/)
+
+    ```python
+    class Solution:
+        def minDistance(self, word1: str, word2: str) -> int:
+    
+            # 能做的操作里面：增删替，其中增加word1某个字母和删掉word2多的某个字母是一样的操作数
+            # 增 = 删
+            # 而对于替换，其实就是在word1[i-1] != word2[j-1]的时候，将不相等的元素更换，这里操作数加1，
+            # 所以这里很抽象，不需要实际地去换，而是判断是否进行操作，操作数怎么处理
+    
+            dp = [[0] * (len(word2)+1) for _ in range(len(word1)+1)]
+    
+            # 初始化，删除对齐
+            for i in range(len(word1)+1):
+                dp[i][0] = i 
+            for j in range(len(word2)+1):
+                dp[0][j] = j
+            
+            for i in range(1, len(word1)+1):
+                for j in range(1, len(word2)+1):
+                    if word1[i-1] == word2[j-1]:
+                        # 如果相等的话，不用执行操作
+                        dp[i][j] = dp[i-1][j-1]
+                    else:
+                        # dp[i][j-1]这里其实就是删除操作，删除word[0:j]的最后一个元素
+                        dp[i][j] = min(dp[i][j-1]+1, dp[i-1][j]+1, dp[i-1][j-1]+1)
+            
+            # print(dp)
+            return dp[-1][-1] 
+    ```
+
+    
+
+38. 647回文子串
+    很有意思的一道题目
+
+    ```python
+    class Solution:
+        def countSubstrings(self, s: str) -> int:
+            # dp[i]的定义是前i个元素的回文子串,但是不对，因为递推关系难以建立
+            
+            # 使用二维dp[i][j]分别代表了s[i:j]是不是一个回文子串，
+            # 首先需要判断s[i]和s[j]是不是相等的，如果相等：
+            # 在i=j的时候，指向的是一个字母，j-i=1的时候,也加1
+            # j-i > 1的时候，向内去判断内部是不是回文的，内部回文dp[i+1][j-1]两边相等，那么加1
+    
+            dp = [[False]*(len(s)+1) for _ in range(len(s)+1)]
+            res = 0
+            for i in range(len(s)+1, 0, -1):
+                for j in range(i, len(s)+1):
+                    if s[i-1] == s[j-1]:
+                        if j-i<=1:
+                            dp[i][j] = True
+                            res += 1
+                        else:
+                            if dp[i+1][j-1]:
+                                dp[i][j] = True
+                                res += 1
+            
+            # print(dp)
+            return res
+    ```
+
+    
+
+39. 516 最长回文子序列  [516. 最长回文子序列 - 力扣（LeetCode）](https://leetcode.cn/problems/longest-palindromic-subsequence/)
+
+    ```python
+    class Solution:
+        def longestPalindromeSubseq(self, s: str) -> int:        
+            # 使用二维dp[i][j]分别代表了s[i:j]是不是一个回文子串，
+            # 如果s[i-1] == s[j-1]，那么dp[i][j] = dp[i+1][j-1]+2,因为两边长度增加了
+            # 在i=j的时候，指向的是一个字母，j-i=1的时候,也加1
+            # j-i > 1的时候，向内去判断内部是不是回文的，内部回文dp[i+1][j-1]两边相等，那么加1
+    
+            dp = [[0]*(len(s)+1) for _ in range(len(s)+1)]
+            for i in range(1, len(s)+1):
+               dp[i][i] = 1 
+    
+            for i in range(len(s)+1, 0, -1):
+                # 这里不考虑相等的情况
+                for j in range(i+1, len(s)+1):
+                    if s[i-1] == s[j-1]:
+                        dp[i][j] = dp[i+1][j-1]+2
+                    else:
+                        dp[i][j] = max(dp[i][j-1], dp[i+1][j])
+            
+            # print(dp)
+            return dp[1][-1]
     ```
 
     
